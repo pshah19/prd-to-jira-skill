@@ -117,15 +117,6 @@ graph TD
   class EPIC-1-4,EPIC-1-5,EPIC-1-6,EPIC-1-7,EPIC-2-2,EPIC-2-4,EPIC-3-2,EPIC-3-3,EPIC-4-1,EPIC-4-2,EPIC-4-3,EPIC-5-1 riskLow;
 ```
 
-**Note on the data:** this example is entirely synthetic — a made-up PRD for a
-fictional product, run without any connection to a real Jira instance. No company or
-customer data is used anywhere in this repo.
-
-**Note on this graph:** it's the actual generated artifact, not a mockup — same
-content as [`examples/output/dependencies.mmd`](examples/output/dependencies.mmd),
-inlined here so it renders on GitHub. A terminal recording of the skill running live
-inside Claude Code is a nice-to-have follow-up, not required to see what it produces.
-
 ## Using it
 
 1. Copy `skill/` into your Claude Code skills directory (project-level:
@@ -154,16 +145,6 @@ Requires only Python 3 (stdlib only, no dependencies) for the render step.
 - **The renderer validates what the model can't guarantee.** `render_outputs.py`
   rejects any `epics.json` where a `depends_on` id doesn't resolve to a real task, so
   a malformed extraction fails loudly instead of producing a broken CSV.
-
-## Portfolio
-
-Part of a small set of AI-leveraged TPM tooling:
-
-1. **prd-to-jira** (this repo) — planning & requirements
-2. Dependency & critical-path mapper — cross-team dependencies & risk
-3. Exec status report generator — status reporting & comms
-4. Sprint analytics & slippage predictor — delivery metrics
-5. TPM Command Center (flagship) — always-on executive visibility, aggregating 1-4
 
 ## License
 
