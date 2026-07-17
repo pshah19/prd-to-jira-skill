@@ -1,0 +1,82 @@
+graph TD
+  subgraph EPIC-1 ["Multi-currency expense submission & display"]
+    EPIC-1-1["EPIC-1-1: Extend expense data model & API to store original currency, amount, and FX rate used (5pt)"]
+    EPIC-1-2["EPIC-1-2: Integrate with existing Finance Reporting FX rate service client (5pt)"]
+    EPIC-1-3["EPIC-1-3: Add async conversion fallback for when the FX provider is unavailable (5pt)"]
+    EPIC-1-4["EPIC-1-4: Add currency selector and local-currency amount entry to web submission form (3pt)"]
+    EPIC-1-5["EPIC-1-5: Add currency selector and local-currency amount entry to mobile submission form (3pt)"]
+    EPIC-1-6["EPIC-1-6: Show original and converted amount on web expense list/detail views (2pt)"]
+    EPIC-1-7["EPIC-1-7: Show original and converted amount on mobile expense list/detail views (2pt)"]
+    EPIC-1-8["EPIC-1-8: Allow approvers to approve on original amount before conversion is backfilled (3pt)"]
+  end
+  subgraph EPIC-2 ["Shared approval-resolution engine & delegate setup"]
+    EPIC-2-1["EPIC-2-1: Build shared approval-resolution service for normal and delegate routing (8pt)"]
+    EPIC-2-2["EPIC-2-2: Approver UI to designate a delegate and date range (3pt)"]
+    EPIC-2-3["EPIC-2-3: Store delegation records with auto-expiry at end of date range (5pt)"]
+    EPIC-2-4["EPIC-2-4: Delegate's approval queue shows delegated-from expenses (3pt)"]
+    EPIC-2-5["EPIC-2-5: Record both delegate (actor) and original approver (authority) on approval (3pt)"]
+  end
+  subgraph EPIC-3 ["Delegate notifications & audit trail"]
+    EPIC-3-1["EPIC-3-1: Extend audit log schema with an optional 'acted as delegate for' field (3pt)"]
+    EPIC-3-2["EPIC-3-2: Write delegated-approval audit entries using the extended schema (2pt)"]
+    EPIC-3-3["EPIC-3-3: Audit log view: filter/search delegated-approval entries (3pt)"]
+    EPIC-3-4["EPIC-3-4: Extend notification service for delegation lifecycle events (5pt)"]
+  end
+  subgraph EPIC-4 ["Admin controls for rollout"]
+    EPIC-4-1["EPIC-4-1: Admin settings screen: enable/disable multi-currency and set reporting currency (3pt)"]
+    EPIC-4-2["EPIC-4-2: Admin view: list active delegations org-wide (2pt)"]
+    EPIC-4-3["EPIC-4-3: Independent org-level feature flags for multi-currency and delegate approvals (2pt)"]
+  end
+  subgraph EPIC-5 ["Finance reporting export updates"]
+    EPIC-5-1["EPIC-5-1: Add original and converted amount columns to the monthly finance export (3pt)"]
+    EPIC-5-2["EPIC-5-2: Confirm export attribution rule for delegated approvals with Finance compliance (2pt)"]
+    EPIC-5-3["EPIC-5-3: Update export attribution logic for delegated approvals per compliance decision (3pt)"]
+  end
+  EPIC-1-1 --> EPIC-1-2
+  EPIC-1-2 --> EPIC-1-3
+  EPIC-1-1 --> EPIC-1-4
+  EPIC-1-1 --> EPIC-1-5
+  EPIC-1-2 --> EPIC-1-6
+  EPIC-1-2 --> EPIC-1-7
+  EPIC-1-3 --> EPIC-1-8
+  EPIC-2-1 --> EPIC-2-2
+  EPIC-2-1 --> EPIC-2-3
+  EPIC-2-1 --> EPIC-2-4
+  EPIC-2-3 --> EPIC-2-4
+  EPIC-2-1 --> EPIC-2-5
+  EPIC-2-1 --> EPIC-3-1
+  EPIC-3-1 --> EPIC-3-2
+  EPIC-2-5 --> EPIC-3-2
+  EPIC-3-2 --> EPIC-3-3
+  EPIC-2-3 --> EPIC-3-4
+  EPIC-1-1 --> EPIC-4-1
+  EPIC-2-3 --> EPIC-4-2
+  EPIC-1-2 --> EPIC-5-1
+  EPIC-5-2 --> EPIC-5-3
+  EPIC-3-2 --> EPIC-5-3
+  classDef riskHigh fill:#f8d7da,stroke:#c0392b,color:#611a15;
+  classDef riskMedium fill:#fff3cd,stroke:#b8860b,color:#664d03;
+  classDef riskLow fill:#d4edda,stroke:#2e7d32,color:#1e4620;
+  class EPIC-1-1 riskMedium;
+  class EPIC-1-2 riskHigh;
+  class EPIC-1-3 riskMedium;
+  class EPIC-1-4 riskLow;
+  class EPIC-1-5 riskLow;
+  class EPIC-1-6 riskLow;
+  class EPIC-1-7 riskLow;
+  class EPIC-1-8 riskMedium;
+  class EPIC-2-1 riskHigh;
+  class EPIC-2-2 riskLow;
+  class EPIC-2-3 riskMedium;
+  class EPIC-2-4 riskLow;
+  class EPIC-2-5 riskMedium;
+  class EPIC-3-1 riskMedium;
+  class EPIC-3-2 riskLow;
+  class EPIC-3-3 riskLow;
+  class EPIC-3-4 riskMedium;
+  class EPIC-4-1 riskLow;
+  class EPIC-4-2 riskLow;
+  class EPIC-4-3 riskLow;
+  class EPIC-5-1 riskLow;
+  class EPIC-5-2 riskHigh;
+  class EPIC-5-3 riskHigh;

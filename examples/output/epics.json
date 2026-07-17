@@ -1,0 +1,385 @@
+{
+  "product": "Nimbus Expense: Multi-Currency & Delegate Approvals",
+  "source_prd": "examples/sample-prd.md",
+  "epics": [
+    {
+      "id": "EPIC-1",
+      "summary": "Multi-currency expense submission & display",
+      "description": "Let employees submit expenses in their local currency with automatic conversion to the company reporting currency, reusing the existing FX rate integration already used by Finance Reporting, so international teams stop hand-converting receipts.",
+      "priority": "High",
+      "tasks": [
+        {
+          "id": "EPIC-1-1",
+          "type": "Task",
+          "summary": "Extend expense data model & API to store original currency, amount, and FX rate used",
+          "description": "Add currency, original_amount, and fx_rate_used fields to the expense record and API so conversions don't drift if rates change later.",
+          "acceptance_criteria": [
+            "Expense schema stores currency code, original amount, and the FX rate used at submission time",
+            "API accepts and returns the new fields",
+            "Existing single-currency (USD-only) expenses continue to work unchanged"
+          ],
+          "labels": ["backend", "expenses"],
+          "risk": "medium",
+          "story_points": 5,
+          "depends_on": []
+        },
+        {
+          "id": "EPIC-1-2",
+          "type": "Task",
+          "summary": "Integrate with existing Finance Reporting FX rate service client",
+          "description": "Reuse the FX rate client already integrated for Finance Reporting rather than standing up a second integration; coordinate with Finance Reporting service owners on shared usage.",
+          "acceptance_criteria": [
+            "Daily FX rate is fetched via the existing shared client, not a new integration",
+            "Rate lookups are cached per day to avoid redundant calls",
+            "Finance Reporting service owners have signed off on the shared usage pattern"
+          ],
+          "labels": ["backend", "finance-reporting", "integration"],
+          "risk": "high",
+          "story_points": 5,
+          "depends_on": ["EPIC-1-1"]
+        },
+        {
+          "id": "EPIC-1-3",
+          "type": "Task",
+          "summary": "Add async conversion fallback for when the FX provider is unavailable",
+          "description": "If the FX provider is down at submission time, allow submission to proceed and backfill the converted amount asynchronously once the rate service recovers.",
+          "acceptance_criteria": [
+            "Submission succeeds even when the FX provider call fails",
+            "A background job backfills the converted amount once the rate service is available again",
+            "Expense record clearly reflects 'conversion pending' state until backfilled"
+          ],
+          "labels": ["backend", "expenses"],
+          "risk": "medium",
+          "story_points": 5,
+          "depends_on": ["EPIC-1-2"]
+        },
+        {
+          "id": "EPIC-1-4",
+          "type": "Story",
+          "summary": "Add currency selector and local-currency amount entry to web submission form",
+          "description": "Employee can choose a currency (defaulting to their home-office currency) and enter the amount in that currency on the web app.",
+          "acceptance_criteria": [
+            "Currency selector defaults to the employee's home-office currency",
+            "Amount is submitted and stored in the selected currency",
+            "Form validates amount > 0 for any supported currency"
+          ],
+          "labels": ["frontend", "web"],
+          "risk": "low",
+          "story_points": 3,
+          "depends_on": ["EPIC-1-1"]
+        },
+        {
+          "id": "EPIC-1-5",
+          "type": "Story",
+          "summary": "Add currency selector and local-currency amount entry to mobile submission form",
+          "description": "Same local-currency submission capability as the web form, on iOS/Android.",
+          "acceptance_criteria": [
+            "Currency selector defaults to the employee's home-office currency",
+            "Amount is submitted and stored in the selected currency",
+            "Behavior matches the web form for parity"
+          ],
+          "labels": ["mobile"],
+          "risk": "low",
+          "story_points": 3,
+          "depends_on": ["EPIC-1-1"]
+        },
+        {
+          "id": "EPIC-1-6",
+          "type": "Story",
+          "summary": "Show original and converted amount on web expense list/detail views",
+          "description": "Approvers and employees see both the originally submitted amount/currency and the converted reporting-currency amount.",
+          "acceptance_criteria": [
+            "Expense list shows original currency amount with converted amount alongside it",
+            "Expense detail view shows the FX rate used and submission date",
+            "Pending-conversion state is visually distinct"
+          ],
+          "labels": ["frontend", "web"],
+          "risk": "low",
+          "story_points": 2,
+          "depends_on": ["EPIC-1-2"]
+        },
+        {
+          "id": "EPIC-1-7",
+          "type": "Story",
+          "summary": "Show original and converted amount on mobile expense list/detail views",
+          "description": "Mobile parity with the web list/detail view changes.",
+          "acceptance_criteria": [
+            "Expense list shows original currency amount with converted amount alongside it",
+            "Expense detail view shows the FX rate used and submission date"
+          ],
+          "labels": ["mobile"],
+          "risk": "low",
+          "story_points": 2,
+          "depends_on": ["EPIC-1-2"]
+        },
+        {
+          "id": "EPIC-1-8",
+          "type": "Task",
+          "summary": "Allow approvers to approve on original amount before conversion is backfilled",
+          "description": "Approvers should not be blocked from approving while the converted amount is still pending; converted amount backfills later without requiring re-approval.",
+          "acceptance_criteria": [
+            "Approve action is available even when conversion is pending",
+            "Backfilled conversion does not require re-approval",
+            "Audit trail notes that approval occurred pre-conversion when applicable"
+          ],
+          "labels": ["backend", "approvals"],
+          "risk": "medium",
+          "story_points": 3,
+          "depends_on": ["EPIC-1-3"]
+        }
+      ]
+    },
+    {
+      "id": "EPIC-2",
+      "summary": "Shared approval-resolution engine & delegate setup",
+      "description": "Build delegate approval setup on top of a single shared 'who can approve this expense right now' resolution service, used by both the normal and delegated routing paths, so delegation logic isn't duplicated or forked from the existing router.",
+      "priority": "High",
+      "tasks": [
+        {
+          "id": "EPIC-2-1",
+          "type": "Task",
+          "summary": "Build shared approval-resolution service for normal and delegate routing",
+          "description": "Centralize 'who can currently approve this expense' logic into one service consumed by both the existing routing path and the new delegate path.",
+          "acceptance_criteria": [
+            "Existing single-approver routing is refactored to call the new shared resolution service with no behavior change",
+            "Service exposes a resolution API that delegate routing (EPIC-2-*) can also call",
+            "Existing approval routing regression tests pass unchanged"
+          ],
+          "labels": ["backend", "approvals", "platform"],
+          "risk": "high",
+          "story_points": 8,
+          "depends_on": []
+        },
+        {
+          "id": "EPIC-2-2",
+          "type": "Story",
+          "summary": "Approver UI to designate a delegate and date range",
+          "description": "An approver can pick a delegate and a start/end date during which the delegate can approve on their behalf.",
+          "acceptance_criteria": [
+            "Approver can select any eligible delegate user",
+            "Approver sets a start and end date for the delegation",
+            "Delegation cannot be created with an end date before its start date"
+          ],
+          "labels": ["frontend", "web"],
+          "risk": "low",
+          "story_points": 3,
+          "depends_on": ["EPIC-2-1"]
+        },
+        {
+          "id": "EPIC-2-3",
+          "type": "Task",
+          "summary": "Store delegation records with auto-expiry at end of date range",
+          "description": "Delegations auto-expire at the end of their date range with no manual cleanup step required.",
+          "acceptance_criteria": [
+            "Delegation record includes delegator, delegate, start date, end date",
+            "Delegation is automatically treated as inactive after its end date with no manual step",
+            "No cleanup job leaves stale active delegations past their end date"
+          ],
+          "labels": ["backend"],
+          "risk": "medium",
+          "story_points": 5,
+          "depends_on": ["EPIC-2-1"]
+        },
+        {
+          "id": "EPIC-2-4",
+          "type": "Story",
+          "summary": "Delegate's approval queue shows delegated-from expenses",
+          "description": "While a delegation is active, expenses routed to the original approver also appear in the delegate's queue, clearly marked as delegated.",
+          "acceptance_criteria": [
+            "Delegate sees delegated expenses in their own queue during the active window",
+            "Each delegated item is labeled 'delegated from <name>'",
+            "Items disappear from the delegate's queue once the delegation ends"
+          ],
+          "labels": ["frontend", "web"],
+          "risk": "low",
+          "story_points": 3,
+          "depends_on": ["EPIC-2-1", "EPIC-2-3"]
+        },
+        {
+          "id": "EPIC-2-5",
+          "type": "Task",
+          "summary": "Record both delegate (actor) and original approver (authority) on approval",
+          "description": "Every approval action taken by a delegate records who actually clicked approve and whose authority was used.",
+          "acceptance_criteria": [
+            "Approval record stores acting user and authority-holder separately when they differ",
+            "Non-delegated approvals are unaffected",
+            "Data is available for the audit log work in EPIC-3"
+          ],
+          "labels": ["backend", "compliance"],
+          "risk": "medium",
+          "story_points": 3,
+          "depends_on": ["EPIC-2-1"]
+        }
+      ]
+    },
+    {
+      "id": "EPIC-3",
+      "summary": "Delegate notifications & audit trail",
+      "description": "Extend the existing notification and audit systems to cover delegation lifecycle events and delegated-approval audit entries, meeting compliance requirements for who-approved-what visibility.",
+      "priority": "Medium",
+      "tasks": [
+        {
+          "id": "EPIC-3-1",
+          "type": "Task",
+          "summary": "Extend audit log schema with an optional 'acted as delegate for' field",
+          "description": "Audit log entries need to be able to represent a delegated approval before any delegated-approval events can be written.",
+          "acceptance_criteria": [
+            "Audit log schema supports an optional delegate-authority field",
+            "Existing non-delegated audit entries are unaffected",
+            "Field is available for EPIC-3-2 to populate"
+          ],
+          "labels": ["backend", "audit", "compliance"],
+          "risk": "medium",
+          "story_points": 3,
+          "depends_on": ["EPIC-2-1"]
+        },
+        {
+          "id": "EPIC-3-2",
+          "type": "Task",
+          "summary": "Write delegated-approval audit entries using the extended schema",
+          "description": "Every delegated approval writes an audit entry populated with both the acting delegate and the original approver of record.",
+          "acceptance_criteria": [
+            "Delegated approvals write an audit entry with both delegate and original approver",
+            "Non-delegated approvals write audit entries as before, unaffected"
+          ],
+          "labels": ["backend", "audit"],
+          "risk": "low",
+          "story_points": 2,
+          "depends_on": ["EPIC-3-1", "EPIC-2-5"]
+        },
+        {
+          "id": "EPIC-3-3",
+          "type": "Story",
+          "summary": "Audit log view: filter/search delegated-approval entries",
+          "description": "Delegated-approval audit entries are filterable and searchable the same way existing audit entries are today.",
+          "acceptance_criteria": [
+            "Audit log UI can filter to delegated-approval entries specifically",
+            "Search behavior matches existing audit entry search",
+            "Both delegate and original approver are visible in the entry detail"
+          ],
+          "labels": ["frontend", "web", "audit"],
+          "risk": "low",
+          "story_points": 3,
+          "depends_on": ["EPIC-3-2"]
+        },
+        {
+          "id": "EPIC-3-4",
+          "type": "Task",
+          "summary": "Extend notification service for delegation lifecycle events",
+          "description": "Cover delegation started, delegation ending in 24h, delegation ended, and expense approved by a delegate, using the existing notification service.",
+          "acceptance_criteria": [
+            "Original approver is notified when a delegation starts and ends",
+            "Original approver is notified 24h before a delegation ends",
+            "Notification is sent when an expense is approved by a delegate on their behalf"
+          ],
+          "labels": ["backend", "notifications"],
+          "risk": "medium",
+          "story_points": 5,
+          "depends_on": ["EPIC-2-3"]
+        }
+      ]
+    },
+    {
+      "id": "EPIC-4",
+      "summary": "Admin controls for rollout",
+      "description": "Give company admins the settings and visibility needed to roll out both features safely: per-org multi-currency enablement, reporting currency, independent feature flags, and audit visibility into active delegations.",
+      "priority": "Medium",
+      "tasks": [
+        {
+          "id": "EPIC-4-1",
+          "type": "Story",
+          "summary": "Admin settings screen: enable/disable multi-currency and set reporting currency",
+          "description": "Org admins can turn multi-currency on/off for their org and choose the reporting currency (default USD).",
+          "acceptance_criteria": [
+            "Admin can toggle multi-currency on/off for their org",
+            "Admin can set the org's reporting currency, defaulting to USD",
+            "Change takes effect without requiring a deploy"
+          ],
+          "labels": ["frontend", "web", "admin"],
+          "risk": "low",
+          "story_points": 3,
+          "depends_on": ["EPIC-1-1"]
+        },
+        {
+          "id": "EPIC-4-2",
+          "type": "Story",
+          "summary": "Admin view: list active delegations org-wide",
+          "description": "A simple list view for admins to see all currently active delegations across the org, for audit purposes.",
+          "acceptance_criteria": [
+            "Admin can view all active delegations org-wide",
+            "List shows delegator, delegate, and date range",
+            "List updates as delegations expire"
+          ],
+          "labels": ["frontend", "web", "admin"],
+          "risk": "low",
+          "story_points": 2,
+          "depends_on": ["EPIC-2-3"]
+        },
+        {
+          "id": "EPIC-4-3",
+          "type": "Task",
+          "summary": "Independent org-level feature flags for multi-currency and delegate approvals",
+          "description": "Both features ship behind separate org-level flags so customers can adopt either independently.",
+          "acceptance_criteria": [
+            "Multi-currency and delegate approvals can be toggled independently per org",
+            "Default state for both flags is off for existing orgs"
+          ],
+          "labels": ["backend", "platform"],
+          "risk": "low",
+          "story_points": 2,
+          "depends_on": []
+        }
+      ]
+    },
+    {
+      "id": "EPIC-5",
+      "summary": "Finance reporting export updates",
+      "description": "Update the monthly finance export to include original and converted expense amounts, and correctly attribute delegated approvals to the original approver of record for compliance — pending confirmation from Finance's compliance team on attribution rules.",
+      "priority": "Medium",
+      "tasks": [
+        {
+          "id": "EPIC-5-1",
+          "type": "Task",
+          "summary": "Add original and converted amount columns to the monthly finance export",
+          "description": "Finance's export includes both the originally submitted amount/currency and the converted reporting-currency amount per line.",
+          "acceptance_criteria": [
+            "Export includes original currency, original amount, and converted amount columns",
+            "Existing single-currency export rows are unaffected"
+          ],
+          "labels": ["backend", "finance-reporting"],
+          "risk": "low",
+          "story_points": 3,
+          "depends_on": ["EPIC-1-2"]
+        },
+        {
+          "id": "EPIC-5-2",
+          "type": "Spike",
+          "summary": "Confirm export attribution rule for delegated approvals with Finance compliance",
+          "description": "PRD leaves open whether delegated approvals should attribute to the original approver or the delegate in compliance exports. Resolve with Finance's compliance team before building EPIC-5-3.",
+          "acceptance_criteria": [
+            "Written decision from Finance compliance team on attribution rule",
+            "Decision documented and linked from EPIC-5-3"
+          ],
+          "labels": ["finance-reporting", "compliance"],
+          "risk": "high",
+          "story_points": 2,
+          "depends_on": []
+        },
+        {
+          "id": "EPIC-5-3",
+          "type": "Task",
+          "summary": "Update export attribution logic for delegated approvals per compliance decision",
+          "description": "Implement the attribution rule decided in EPIC-5-2 in the export logic, using the delegated-approval audit data from EPIC-3-2.",
+          "acceptance_criteria": [
+            "Export attributes delegated approvals per the confirmed compliance rule",
+            "Export correctly distinguishes delegated vs. non-delegated approvals"
+          ],
+          "labels": ["backend", "finance-reporting", "compliance"],
+          "risk": "high",
+          "story_points": 3,
+          "depends_on": ["EPIC-5-2", "EPIC-3-2"]
+        }
+      ]
+    }
+  ]
+}
