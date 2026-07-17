@@ -5,9 +5,6 @@ PRD into a Jira-ready backlog: epics, stories/tasks, cross-team dependencies, an
 Fibonacci story-point estimates — plus a rendered dependency graph and a
 review-ready backlog doc.
 
-This is the first project in a small portfolio of AI-leveraged TPM tooling. See the
-[portfolio index](#portfolio) at the bottom.
-
 ## The problem
 
 Turning a PRD into a scoped, estimated, dependency-aware backlog is a couple of hours
@@ -141,7 +138,9 @@ Requires only Python 3 (stdlib only, no dependencies) for the render step.
   reduce to a formula — that's the actual TPM skill being automated here.
 - **Dependencies are direct, not transitive.** The skill records only direct
   `depends_on` edges; a downstream critical-path/scheduling tool is expected to
-  compute the transitive closure (see [portfolio](#portfolio) below).
+  compute the transitive closure — see
+  [`critical-path-mapper`](https://github.com/pshah19/critical-path-mapper), which
+  consumes this skill's output directly.
 - **The renderer validates what the model can't guarantee.** `render_outputs.py`
   rejects any `epics.json` where a `depends_on` id doesn't resolve to a real task, so
   a malformed extraction fails loudly instead of producing a broken CSV.
