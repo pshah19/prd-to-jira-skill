@@ -139,7 +139,7 @@ Requires only Python 3 (stdlib only, no dependencies) for the render step.
 - **Dependencies are direct, not transitive.** The skill records only direct
   `depends_on` edges; a downstream critical-path/scheduling tool is expected to
   compute the transitive closure — see
-  [`critical-path-mapper`](https://github.com/pshah19/critical-path-mapper), which
+  [`critical-path-mapper`](https://github.com/punit-labs/critical-path-mapper), which
   consumes this skill's output directly.
 - **The renderer validates what the model can't guarantee.** `render_outputs.py`
   rejects any `epics.json` where a `depends_on` id doesn't resolve to a real task, so
