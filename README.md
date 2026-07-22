@@ -47,6 +47,8 @@ Result: **5 epics, 23 tasks, 78 story points, 4 tasks flagged high-risk** (a
 cross-team FX integration, a foundational routing refactor, and two tasks gated on an
 open compliance question the PRD itself left unresolved).
 
+![Terminal demo: running render_outputs.py against the sample PRD's extracted epics.json, producing a real backlog.md](assets/demo.gif)
+
 The dependency graph, generated straight from `dependencies.mmd`:
 
 ```mermaid
